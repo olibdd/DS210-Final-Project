@@ -3,7 +3,8 @@ use std::fs::File;
 use std::io::{self, BufRead};
 
 struct Graph {
-    edges: HashMap<usize, HashSet<usize>>, // HashMap to store edges
+    edges: HashMap<usize, 
+    HashSet<usize>>, // HashMap to store edges
 }
 
 impl Graph {
@@ -22,31 +23,37 @@ impl Graph {
             .insert(to);
     }
 
-    // Method to perform Breadth-First Search 
-    fn bfs(&self, start: usize) -> Vec<usize> {
+    fn bfs_distances(&self, start: usize) -> HashMap<usize, usize> {
         let mut visited = HashSet::new();
         let mut queue = VecDeque::new();
-        let mut result = Vec::new();
+        let mut distances = HashMap::new();
 
-        queue.push_back(start);
+        queue.push_back((start, 0));
         visited.insert(start);
 
-        while let Some(node) = queue.pop_front() {
-            result.push(node);
+        while let Some((node, dist)) = queue.pop_front() {
+            distances.insert(node, dist);
             if let Some(neighbors) = self.edges.get(&node) {
                 for &neighbor in neighbors {
                     if !visited.contains(&neighbor) {
                         visited.insert(neighbor);
-                        queue.push_back(neighbor);
+                        queue.push_back((neighbor, dist + 1));
                     }
                 }
             }
         }
 
-        result
+        distances
     }
-}
-impl Graph {
+
+    // Method to find the average distance between nodes using BFS
+    fn average_distance(&self, start: usize) -> f64 {
+        let distances = self.bfs_distances(start);
+        let total_distance: usize = distances.values().sum();
+        let num_nodes = distances.len();
+        total_distance as f64 / num_nodes as f64
+    }
+
     fn shortest_path(&self, start: usize, end: usize) -> Option<Vec<usize>> {
         let mut distance: HashMap<usize, usize> = HashMap::new();
         let mut previous: HashMap<usize, Option<usize>> = HashMap::new();
@@ -89,7 +96,7 @@ impl Graph {
             None // No path found
         }
     }
-}
+} 
 
 // reading a directed graph from a file
 fn read_graph_from_file(filename: &str) -> Result<Graph, io::Error> {
@@ -116,22 +123,18 @@ fn main() -> Result<(), io::Error> {
     let graph = read_graph_from_file(filename)?; // Read graph from file
 
     let start: usize = 0; // <= start from this vertex
-    let mut distance: Vec<Option<u32>> = vec![None; graph.edges.len()];
+    let mut distance: Vec<Option<usize>> = vec![None; graph.edges.len()];
     distance[start] = Some(0); // <= we know this distance
 
     // Perform BFS starting from the specified vertex
-    let bfs_result = graph.bfs(start);
+    let bfs_result = graph.bfs_distances(start);
     println!("BFS traversal result: {:?}", bfs_result);
 
-    // vertex-distance pairs
-    print!("vertex:distance");
-    for v in 0..graph.edges.len() {
-        print!("   {}:{}", v, distance[v].unwrap_or(u32::MAX));
-    }
-    println!();
+    // Calculate the average distance
+    let avg_distance = graph.average_distance(start);
+    println!("Average distance from node {}: {}", start, avg_distance);
 
     // Calculating the shortest path
-    let start: usize = 0; // <= start from this vertex
     let end: usize = 400; // <= end at this vertex
     if let Some(shortest_path) = graph.shortest_path(start, end) {
         println!("Shortest path from {} to {}: {:?}", start, end, shortest_path);
