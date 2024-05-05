@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::io::{self, BufRead};
-use std::collections::HashMap;
 use crate::graph::*;
 
 pub mod graph;
@@ -54,6 +53,7 @@ fn main() -> Result<(), io::Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
 
     #[test]
     fn test_bfs_distances() {
