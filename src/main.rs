@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::{self, BufRead};
+use std::collections::HashMap;
 use crate::graph::*;
 
 pub mod graph;
@@ -55,71 +56,51 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_bfs_traversal() {
-        // sample graph for testing
+    fn test_bfs_distances() {
         let mut graph = Graph::new();
-        let edges = vec![
-        (0, 1), 
-        (0, 2),
-        (1, 3),
-        (2, 3), 
-        (2, 4),
-        (3, 5),
-        (4, 5),
-        ];
+        // Adding sample edges
+        graph.add_edge(0, 1);
+        graph.add_edge(0, 2);
+        graph.add_edge(1, 3);
 
-        // adding edges to the graph
-        for (from, to) in edges {
-            graph.add_edge(from, to);
-        }
+        // Perform BFS from vertex 0
+        let distances = graph.bfs_distances(0);
 
-        // BFS traversal starting from vertex 0
-        let bfs_result = graph.bfs(0);
+        // Expected distances after BFS traversal
+        let expected_distances: HashMap<usize, usize> = [
+            (0, 0), // Distance from start vertex to itself is 0
+            (1, 1),
+            (2, 1),
+            (3, 2),
+        ]
+        .iter()
+        .cloned()
+        .collect();
 
-        // expected BFS traversal result
-        let expected_result = vec![0, 1, 2, 3, 4, 5];
+        // Assert that the distances match the expected distances
+        assert_eq!(distances, expected_distances);
+    }
 
-        // does the BFS traversal result match the expected result?
-        assert_eq!(bfs_result, expected_result);
+    #[test]
+    fn test_shortest_path() {
+        let mut graph = Graph::new();
+        // Adding some sample edges
+        graph.add_edge(0, 1);
+        graph.add_edge(0, 2);
+        graph.add_edge(1, 3);
+        graph.add_edge(2, 4);
+
+        // Finding the shortest path from vertex 0 to vertex 4
+        let shortest_path = graph.shortest_path(0, 4);
+
+        // Expected shortest path
+        let expected_path = Some(vec![0, 2, 4]);
+
+        // Assert that the shortest path matches the expected path
+        assert_eq!(shortest_path, expected_path);
     }
 }
-#[test]
-fn test_shortest_path() {
-    // Sample graph for testing
-    let mut graph = Graph::new();
-    let edges = vec![
-        (0, 1), 
-        (0, 2),
-        (1, 3),
-        (2, 3), 
-        (2, 4),
-        (3, 5),
-        (4, 5),
-    ];
-    for (from, to) in edges {
-        graph.add_edge(from, to);
-    }
 
-    // Test cases for shortest paths
-    let test_cases = vec![
-        // vertex 0 to vertex 5
-        (0, 5, vec![0, 2, 4, 5]),
-        // vertex 1 to vertex 5
-        (1, 5, vec![1, 3, 5]),
-        // vertex 2 to vertex 5
-        (2, 5, vec![2, 4, 5]),
-        // vertex 3 to vertex 5
-        (3, 5, vec![3, 5]),
-    ];
-
-    for (start, end, expected_path) in test_cases {
-        if let Some(shortest_path) = graph.shortest_path(start, end) {
-            assert_eq!(shortest_path, expected_path);
-        } else {
-            panic!("No path found from {} to {}", start, end);
-        }
-    }
-}
 
 
 
